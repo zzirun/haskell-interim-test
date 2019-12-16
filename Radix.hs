@@ -24,6 +24,19 @@ buildIntTree
       | x < y     = Node y (add x l) r
       | otherwise = Node y l (add x r)
 
+rISize :: Int -> Int
+rISize n
+  = size (buildIntTree (take n rs))
+
+rRSize :: Int -> Int
+rRSize n
+  = size' (buildRadixTree (take n rs))
+
+rCompSize :: Int -> Int
+rCompSize com
+  | rRSize com == rISize com = com
+  | rRSize com > rISize com = rCompSize (com + 1)
+  | rRSize com < rISize com = rCompSize (com - 1)
 --------------------------------------------------------------------------
 
 a, m :: Integer
@@ -45,38 +58,106 @@ rs = randomInts 1000 500 765539
 -- Pre (universal): all integers are non-negative
 
 size :: IntTree -> Int
-size
-  = undefined
+size Empty
+  = 1
+size (Leaf a)
+  = 5
+size (Node a (tree1) (tree2))
+  = 13 + size (tree1) + size (tree2)
 
 size' :: RadixTree -> Int
-size'
-  = undefined
+size' (Leaf a)
+  = 1
+size' (Node a (tree1) (tree2))
+  = 9 + size' (tree1) + size' (tree2)
 
 binary :: Int -> BitString
-binary
-  = undefined
+binary 0 = [0]
+binary 1 = [1]
+binary num
+  = (binary quot) ++ [rem]
+  where
+    (quot, rem) = quotRem num 2
 
 insert :: BitString -> RadixTree -> RadixTree
-insert
-  = undefined
+insert [] (Leaf a)
+  = (Leaf True)
+insert [] (Node a (tree1) (tree2))
+  = (Node True (tree1) (tree2))
+
+insert bitstr (Node a (tree1) (tree2))
+  | head bitstr == 0 = (Node a (insert (tail bitstr) tree1) (tree2))
+  | otherwise = (Node a (tree1) (insert (tail bitstr) tree2))
+insert bitstr (Leaf a)
+  | head bitstr == 0 = (Node a (insert (tail bitstr) (Leaf False)) (Leaf False))
+  | otherwise = (Node a (Leaf False) (insert (tail bitstr) (Leaf False)))
 
 buildRadixTree :: [Int] -> RadixTree
-buildRadixTree
-  = undefined
+buildRadixTree [] 
+  = (Leaf False)
+buildRadixTree (x : xs)
+  = insert (binary x) (buildRadixTree xs)
+
+fromBinary :: BitString -> Int
+fromBinary [0] = 0
+fromBinary [1] = 1
+fromBinary bstr
+  = (fromBinary bs) * 2 + b
+  where
+    bs = take ((length bstr) - 1) bstr
+    [b] = drop ((length bstr) - 1) bstr
 
 member :: Int -> RadixTree -> Bool
-member
-  = undefined
+member num tree
+  = memberb (binary num) tree
+
+memberb :: BitString -> RadixTree -> Bool
+memberb bnum (Leaf a)
+  = False
+
+memberb bnum (Node a (tree1) (tree2))
+  | bs == [] = member' b (Node a (tree1) (tree2))
+  | b == 1 = memberb (bs) tree2
+  | b == 0 = memberb (bs) tree1
+  where
+    (b : bs) = bnum
+
+    member' :: Int -> RadixTree -> Bool
+    member' b (Node a (tree1) (tree2)) 
+      | b == 0 = isTrue tree1
+      | b == 1 = isTrue tree2
+
+    isTrue :: RadixTree -> Bool
+    isTrue (Node a (tree1) (tree2))
+      = a
+    isTrue (Leaf a)
+      = a
 
 union :: RadixTree -> RadixTree -> RadixTree
-union
-  = undefined
+union tree1 tree2
+  = buildRadixTree (union' 100 tree1 tree2)
+
+union' :: Int -> RadixTree -> RadixTree -> [Int]
+union' 0 tree1 tree2
+  | member 0 tree1 || member 0 tree2 = [0]
+  | otherwise = []
+union' x tree1 tree2
+  | member x tree1 || member x tree2 = x : (union' (x-1) tree1 tree2)
+  | otherwise = union' (x-1) tree1 tree2
 
 intersection :: RadixTree -> RadixTree -> RadixTree
-intersection
-  = undefined
+intersection tree1 tree2
+  = buildRadixTree (intersection' 100 tree1 tree2)
 
--- CONCLUSION: The break-even point is xxx.
+intersection' :: Int -> RadixTree -> RadixTree -> [Int]
+intersection' 0 tree1 tree2
+  | member 0 tree1 && member 0 tree2 = [0]
+  | otherwise = []
+intersection' x tree1 tree2
+  | member x tree1 && member x tree2 = x : (intersection' (x-1) tree1 tree2)
+  | otherwise = intersection' (x-1) tree1 tree2
+
+-- CONCLUSION: The break-even point is 205.
 
 -----------------------------------------------------------------------------
 -- Some test trees...

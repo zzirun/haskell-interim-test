@@ -38,7 +38,8 @@ insertTestCases
       ([1],(Leaf False)) ==> Node False (Leaf False) (Leaf True),
       ([0],(insert [1] (Leaf False))) ==> Node False (Leaf True) (Leaf True),
       ([0,1],(insert [1] (Leaf False))) ==> Node False (Node False (Leaf False)
-      (Leaf True)) (Leaf True)
+      (Leaf True)) (Leaf True),
+      ([1, 1, 0], figure) ==> Node False (Leaf True) (Node True (Leaf False) (Node True (Node True (Leaf True) (Leaf False)) (Leaf True)))
     ]
 
 
@@ -75,7 +76,8 @@ memberTestCases
       (7,(buildRadixTree [1,3,7])) ==> True,
       (2,(buildRadixTree [])) ==> False,
       (0,(buildRadixTree [0])) ==> True,
-      (6,(insert [1,1,0] figure)) ==> True
+      (6,(insert [1,1,0] figure)) ==> True,
+      (8,(buildRadixTree [2,3,4,7])) ==> False
     ]
 
 
@@ -88,7 +90,8 @@ unionTestCases
   = [ ((buildRadixTree [1,3,7]),(buildRadixTree [2,3,4,7])) ==> Node False
       (Leaf False) (Node True (Node True (Leaf True) (Leaf False)) (Node True
       (Leaf False) (Leaf True))),
-      (figure,(buildRadixTree [])) ==> figure
+      (figure,(buildRadixTree [])) ==> figure,
+      ((buildRadixTree [0]), (buildRadixTree [0])) ==> (buildRadixTree [0])
     ]
 
 
@@ -100,7 +103,8 @@ unionTestCases
 intersectionTestCases
   = [ ((buildRadixTree [1,3,7]),(buildRadixTree [2,3,4,7])) ==> Node False
      (Leaf False) (Node False (Leaf False) (Node True (Leaf False) (Leaf True)))
-     ,(figure,(buildRadixTree [])) ==> Leaf False
+     ,(figure,(buildRadixTree [])) ==> Leaf False,
+     ((buildRadixTree [0]), (buildRadixTree [0])) ==> (buildRadixTree [0])
     ]
 
 
